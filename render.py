@@ -1,6 +1,4 @@
-satir1
-    girinti (parantez) {x}
-satir3#!/usr/bin/env python3
+#!/usr/bin/env python3
 """HC Medya Habercilik - Reels uretici.
 
 Bir haberi (baslik, ozet, kategori, istege bagli fotograf) 1080x1920, 30 fps,
