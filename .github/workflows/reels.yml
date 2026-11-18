@@ -1,0 +1,63 @@
+name: Reels Uret
+
+on:
+  workflow_dispatch:
+    inputs:
+      id:
+        description: "Video dosya adi (harf, rakam, tire)"
+        required: true
+      veri:
+        description: "Haber JSON (baslik, ozet, kategori, gelisme, foto_url, tarih)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: reels
+  cancel-in-progress: false
+
+jobs:
+  uret:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Araclari kur (FFmpeg, Pillow)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m pip install --quiet pillow
+
+      - name: Marka yazi tiplerini indir (Google Fonts, OFL lisansli)
+        run: |
+          mkdir -p fonts
+          base=https://github.com/google/fonts/raw/main/ofl
+          curl -fsSL -o fonts/BarlowCondensed-Bold.ttf      $base/barlowcondensed/BarlowCondensed-Bold.ttf
+          curl -fsSL -o fonts/BarlowCondensed-ExtraBold.ttf $base/barlowcondensed/BarlowCondensed-ExtraBold.ttf
+          curl -fsSL -o fonts/Barlow-Regular.ttf            $base/barlow/Barlow-Regular.ttf
+          curl -fsSL -o fonts/Barlow-SemiBold.ttf           $base/barlow/Barlow-SemiBold.ttf
+
+      - name: Videoyu uret
+        env:
+          VERI: ${{ inputs.veri }}
+          VID: ${{ inputs.id }}
+        run: |
+          ID=$(printf '%s' "$VID" | tr -cd 'A-Za-z0-9-' | cut -c1-60)
+          test -n "$ID"
+          printf '%s' "$VERI" > haber.json
+          python3 render.py --json haber.json --out "$ID.mp4"
+          echo "ID=$ID" >> $GITHUB_ENV
+
+      - name: Videoyu yayinla (release: reels)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view reels >/dev/null 2>&1 || gh release create reels --title "Reels" --notes "Otomatik uretilen Reels videolari"
+          gh release upload reels "$ID.mp4" --clobber
+          # en eski videolari temizle (son 60 kalir)
+          gh release view reels --json assets --jq '.assets | sort_by(.createdAt) | .[:-60] | .[].name' | while read -r ad; do
+            [ -n "$ad" ] && gh release delete-asset reels "$ad" -y || true
+          done
+          echo "https://github.com/${{ github.repository }}/releases/download/reels/$ID.mp4"
