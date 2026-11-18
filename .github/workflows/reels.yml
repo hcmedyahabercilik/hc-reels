@@ -50,7 +50,7 @@ jobs:
           python3 render.py --json haber.json --out "$ID.mp4"
           echo "ID=$ID" >> $GITHUB_ENV
 
-      - name: Videoyu yayinla (release: reels)
+      - name: "Videoyu yayinla (release reels)"
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
