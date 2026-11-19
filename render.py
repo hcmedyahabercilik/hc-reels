@@ -159,7 +159,7 @@ def uret(h, cikti):
     # Instagram Reels guvenli alani: sagda ~210 px dugmeler, altta ~330 px hesap adi/aciklama
     TW = 780
     ALT = 1400
-    TICK_Y = 1420
+    TICK_Y = 1812
     boy = 96
     f_b = font(BASLIK_XF, boy)
     bas_sat = sar(baslik, f_b, TW)
