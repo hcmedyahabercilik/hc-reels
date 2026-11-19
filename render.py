@@ -158,7 +158,7 @@ def uret(h, cikti):
 
     # Instagram Reels guvenli alani: sagda ~210 px dugmeler, altta ~330 px hesap adi/aciklama
     TW = 780
-    ALT = 1400
+    ALT = 1460
     TICK_Y = 1812
     boy = 96
     f_b = font(BASLIK_XF, boy)
@@ -209,13 +209,38 @@ def uret(h, cikti):
 
     PANEL_Y = 640 if foto else 560
     oy_bas = PANEL_Y + 120 + len(bas_sat) * lh + 34 + 44
-    sigan = max(1, (ALT - oy_bas) // 62)
+    # Ozet sigmazsa once yazi kuculur (44 -> 40 -> 36), sonra son tam cumlede kesilir
+    for oz_boy in (44, 40, 36):
+        f_ozet = font(METIN_F, oz_boy)
+        oz_lh = int(round(oz_boy * 1.41))
+        ozet_sat = sar(ozet, f_ozet, TW)
+        sigan = max(1, (ALT - oy_bas) // oz_lh)
+        if len(ozet_sat) <= sigan:
+            break
     if len(ozet_sat) > sigan:
-        ozet_sat = ozet_sat[:sigan]
-        son = ozet_sat[-1]
-        while son and f_ozet.getlength(son + '…') > TW:
-            son = son.rsplit(' ', 1)[0] if ' ' in son else son[:-1]
-        ozet_sat[-1] = son.rstrip(',;:') + '…'
+        cumleler, cur = [], ""
+        for k in ozet.split():
+            cur = (cur + " " + k).strip()
+            if k.endswith((".", "!", "?")):
+                cumleler.append(cur)
+                cur = ""
+        if cur:
+            cumleler.append(cur)
+        secilen = ""
+        for c in cumleler:
+            dn = (secilen + " " + c).strip()
+            if len(sar(dn, f_ozet, TW)) <= sigan:
+                secilen = dn
+            else:
+                break
+        if secilen:
+            ozet_sat = sar(secilen, f_ozet, TW)
+        else:
+            ozet_sat = ozet_sat[:sigan]
+            son = ozet_sat[-1]
+            while son and f_ozet.getlength(son + '…') > TW:
+                son = son.rsplit(' ', 1)[0] if ' ' in son else son[:-1]
+            ozet_sat[-1] = son.rstrip(',;:') + '…'
     etiket_w = int(f_tick.getlength(ust_metin)) + 100
     OUTRO_T = 12.4
     n_kare = int(SURE * FPS)
@@ -307,9 +332,9 @@ def uret(h, cikti):
             sk = ease_out((t - bas_ozet - j * 0.45) / 0.45)
             if sk <= 0:
                 continue
-            katman = Image.new("RGBA", (W, 66), (0, 0, 0, 0))
+            katman = Image.new("RGBA", (W, oz_lh + 4), (0, 0, 0, 0))
             ImageDraw.Draw(katman).text((72, 0), s, font=f_ozet, fill=GRAY + (int(255 * sk),))
-            kare.paste(katman, (int((1 - sk) * 30), oy + j * 62), katman)
+            kare.paste(katman, (int((1 - sk) * 30), oy + j * oz_lh), katman)
 
         # --- kayan alt bant (Instagram'in kirptigi kenarlarin ve hesap adinin ustunde) ---
         bk = ease_out((t - 0.6) / 0.5)
