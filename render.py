@@ -151,14 +151,15 @@ def uret(h, cikti):
     f_tick = font(BASLIK_F, 40)
     ob = 96
     f_outro1 = font(BASLIK_XF, ob)
-    while f_outro1.getlength('HC MEDYA HABERCİLİK') > W - 140 and ob > 50:
+    while f_outro1.getlength('HC MEDYA HABERCİLİK') > W - 220 and ob > 50:
         ob -= 4
         f_outro1 = font(BASLIK_XF, ob)
     f_outro2 = font(METIN_BF, 44)
 
     # Instagram Reels guvenli alani: sagda ~210 px dugmeler, altta ~330 px hesap adi/aciklama
-    TW = W - 72 - 210
-    ALT = 1590
+    TW = 780
+    ALT = 1400
+    TICK_Y = 1420
     boy = 96
     f_b = font(BASLIK_XF, boy)
     bas_sat = sar(baslik, f_b, TW)
@@ -206,9 +207,8 @@ def uret(h, cikti):
     for k in range(3):
         td.text((k * tick_w, 10), tick_metin, font=f_tick, fill=WHITE)
 
-    PANEL_Y = 820 if foto else 700
-    BANT = 76
-    oy_bas = PANEL_Y + 196 + len(bas_sat) * lh + 34 + 44
+    PANEL_Y = 640 if foto else 560
+    oy_bas = PANEL_Y + 120 + len(bas_sat) * lh + 34 + 44
     sigan = max(1, (ALT - oy_bas) // 62)
     if len(ozet_sat) > sigan:
         ozet_sat = ozet_sat[:sigan]
@@ -216,7 +216,7 @@ def uret(h, cikti):
         while son and f_ozet.getlength(son + '…') > TW:
             son = son.rsplit(' ', 1)[0] if ' ' in son else son[:-1]
         ozet_sat[-1] = son.rstrip(',;:') + '…'
-    etiket_w = int(f_tick.getlength(ust_metin)) + 48
+    etiket_w = int(f_tick.getlength(ust_metin)) + 100
     OUTRO_T = 12.4
     n_kare = int(SURE * FPS)
 
@@ -260,13 +260,6 @@ def uret(h, cikti):
         d.rectangle([0, py, W, H], fill=LIGHT)
         d.rectangle([0, py, 14, H], fill=ust_renk)  # sol kirmizi serit
         d.rectangle([0, py - 8, W, py], fill=ust_renk)
-        # kayan bant: panelin ust kenarinda (Instagram yazilarinin altinda kalmaz)
-        d.rectangle([0, py, W, py + BANT], fill=NAVY)
-        d.rectangle([0, py, etiket_w, py + BANT], fill=ust_renk)
-        d.text((24, py + 14), ust_metin, font=f_tick, fill=NAVY if gel else WHITE)
-        off = int((t * 160) % tick_w)
-        band = tick_img.crop((off, 0, off + W - etiket_w - 16, 70))
-        kare.paste(band, (etiket_w + 16, py + 4), band)
 
         # --- ust etiket ve marka ---
         ek = ease_out((t - 0.35) / 0.45)
@@ -286,14 +279,14 @@ def uret(h, cikti):
         # --- kategori + tarih ---
         kk = ease_out((t - 0.8) / 0.4)
         if kk > 0 and t < OUTRO_T + 0.6:
-            kare.paste(c_kat, (72, int(PANEL_Y + BANT + 36 + (1 - kk) * 30)), c_kat)
+            kare.paste(c_kat, (72, int(PANEL_Y + 36 + (1 - kk) * 30)), c_kat)
             if tarih:
                 tx = 72 + c_kat.width + 28
                 tt = tarih if tx + f_tarih.getlength(tarih) <= W - 220 else tarih.split('·')[-1].strip()
-                d.text((tx, PANEL_Y + BANT + 46 + (1 - kk) * 30), tt, font=f_tarih, fill=MUTED)
+                d.text((tx, PANEL_Y + 46 + (1 - kk) * 30), tt, font=f_tarih, fill=MUTED)
 
         # --- baslik: satir satir yukari kayarak ---
-        by = PANEL_Y + 196
+        by = PANEL_Y + 120
         for j, s in enumerate(bas_sat):
             sk = ease_out((t - 1.0 - j * 0.22) / 0.5)
             if sk <= 0:
@@ -318,6 +311,16 @@ def uret(h, cikti):
             ImageDraw.Draw(katman).text((72, 0), s, font=f_ozet, fill=GRAY + (int(255 * sk),))
             kare.paste(katman, (int((1 - sk) * 30), oy + j * 62), katman)
 
+        # --- kayan alt bant (Instagram'in kirptigi kenarlarin ve hesap adinin ustunde) ---
+        bk = ease_out((t - 0.6) / 0.5)
+        if bk > 0 and py < TICK_Y:
+            d.rectangle([0, TICK_Y, W, TICK_Y + 76], fill=NAVY)
+            d.rectangle([0, TICK_Y, etiket_w, TICK_Y + 76], fill=ust_renk)
+            d.text((72, TICK_Y + 14), ust_metin, font=f_tick, fill=NAVY if gel else WHITE)
+            off = int((t * 160) % tick_w)
+            band = tick_img.crop((off, 0, off + W - etiket_w - 16, 70))
+            kare.paste(band, (etiket_w + 16, TICK_Y + 4), band)
+
         # --- ilerleme cubugu ---
         d.rectangle([0, 0, int(W * t / SURE), 8], fill=ust_renk)
 
@@ -335,9 +338,9 @@ def uret(h, cikti):
                 lg.putalpha(lg.getchannel("A").point(lambda a: int(a * ik)))
                 s = 0.85 + 0.15 * ik
                 lg = lg.resize((int(lg.width * s), int(lg.height * s)), Image.LANCZOS)
-                kare.paste(lg, ((W - lg.width) // 2, 640 - lg.height // 2), lg)
+                kare.paste(lg, ((W - lg.width) // 2, 520 - lg.height // 2), lg)
                 d2 = ImageDraw.Draw(kare)
-                y1 = 860
+                y1 = 740
                 for metin, f, renk in (("HC MEDYA HABERCİLİK", f_outro1, WHITE),
                                        ("Gündemi kaçırmamak için takip et", f_outro2, MUTED),
                                        ("@hcmedyahabercilik", f_outro2, AMBER)):
@@ -346,7 +349,7 @@ def uret(h, cikti):
                     ImageDraw.Draw(katman).text(((W - f.getlength(metin)) / 2, 0), metin, font=f, fill=renk + (a,))
                     kare.paste(katman, (0, int(y1 + (1 - ik) * 30)), katman)
                     y1 += 130 if f is f_outro1 else 80
-                d2.rectangle([(W - 200) // 2, 1210, (W + 200) // 2, 1218], fill=RED)
+                d2.rectangle([(W - 200) // 2, 1090, (W + 200) // 2, 1098], fill=RED)
 
         p.stdin.write(kare.tobytes())
 
