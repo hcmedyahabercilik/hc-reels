@@ -171,7 +171,7 @@ def uret(h, cikti):
     ozet_sat = sar(ozet, f_ozet, TW)
 
     foto = foto_indir(h.get("foto_url", ""))
-    UST_H = 1020
+    UST_H = 720  # foto sadece panelin ustunde gorunur; kucuk alan = buyutme yok, net goruntu
     if foto:
         foto = kirp_doldur(foto, int(W * 1.16), int(UST_H * 1.16))
 
@@ -229,8 +229,8 @@ def uret(h, cikti):
                 "-map", "0:v", "-map", "[a]"]
     else:
         cmd += ["-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-map", "0:v", "-map", "1:a"]
-    cmd += ["-t", str(SURE), "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
-            "-profile:v", "high", "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-movflags", "+faststart", cikti]
+    cmd += ["-t", str(SURE), "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p",
+            "-profile:v", "high", "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-movflags", "+faststart", cikti]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 
     for i in range(n_kare):
@@ -243,7 +243,7 @@ def uret(h, cikti):
             fw, fh = int(W * z), int(UST_H * z)
             kx = int((foto.width - fw) * (0.5 + 0.25 * math.sin(t / SURE * math.pi)))
             ky = int((foto.height - fh) * 0.5)
-            parca = foto.crop((kx, ky, kx + fw, ky + fh)).resize((W, UST_H), Image.BILINEAR)
+            parca = foto.crop((kx, ky, kx + fw, ky + fh)).resize((W, UST_H), Image.LANCZOS)
             parca = Image.composite(karanlik, parca, grad)
             kare.paste(parca, (0, 0))
         else:
