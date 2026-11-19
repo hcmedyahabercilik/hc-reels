@@ -207,17 +207,25 @@ def uret(h, cikti):
     for k in range(3):
         td.text((k * tick_w, 10), tick_metin, font=f_tick, fill=WHITE)
 
-    PANEL_Y = 640 if foto else 560
-    oy_bas = PANEL_Y + 120 + len(bas_sat) * lh + 34 + 44
-    # Ozet sigmazsa once yazi kuculur (44 -> 40 -> 36), sonra son tam cumlede kesilir
-    for oz_boy in (44, 40, 36):
-        f_ozet = font(METIN_F, oz_boy)
-        oz_lh = int(round(oz_boy * 1.41))
-        ozet_sat = sar(ozet, f_ozet, TW)
-        sigan = max(1, (ALT - oy_bas) // oz_lh)
-        if len(ozet_sat) <= sigan:
+    # Ozet asla kesilmesin: once yazi kuculur (44 -> 40 -> 36); yine sigmazsa
+    # foto alani 40'ar px kisalir (PANEL_Y en fazla 400'e kadar), sigdigi an durur.
+    PANEL_BAS = 640 if foto else 560
+    PANEL_Y = PANEL_BAS
+    while True:
+        oy_bas = PANEL_Y + 120 + len(bas_sat) * lh + 34 + 44
+        for oz_boy in ((44, 40, 36) if PANEL_Y == PANEL_BAS else (36,)):
+            f_ozet = font(METIN_F, oz_boy)
+            oz_lh = int(round(oz_boy * 1.41))
+            ozet_sat = sar(ozet, f_ozet, TW)
+            sigan = max(1, (ALT - oy_bas) // oz_lh)
+            if len(ozet_sat) <= sigan:
+                break
+        if len(ozet_sat) <= sigan or PANEL_Y <= 400:
             break
+        PANEL_Y -= 40
+    print("yerlesim: PANEL_Y=%d ozet=%dpt satir=%d/%d" % (PANEL_Y, oz_boy, len(ozet_sat), sigan), file=sys.stderr)
     if len(ozet_sat) > sigan:
+        # Normalde olmaz: n8n bu kadar uzun ozetli haberi Reels'e secmez. Son care: tam cumlede kes.
         cumleler, cur = [], ""
         for k in ozet.split():
             cur = (cur + " " + k).strip()
